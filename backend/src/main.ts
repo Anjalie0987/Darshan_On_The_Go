@@ -20,14 +20,17 @@ import { configurePayloadProtection } from './security/payload-protection.config
 // API Documentation
 import { setupSwagger } from './swagger';
 
+import { NestExpressApplication } from '@nestjs/platform-express';
+
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true });
   const configService = app.get(ConfigService);
   
-  // Serve static files from uploads folder
-  const express = require('express');
+  // Serve static files from uploads folder properly
   const path = require('path');
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  app.useStaticAssets(path.join(process.cwd(), 'uploads'), {
+    prefix: '/uploads',
+  });
   
   // Set Pino as the global logger
   const pinoLogger = app.get(Logger);
