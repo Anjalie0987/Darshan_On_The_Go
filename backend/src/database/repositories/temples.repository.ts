@@ -329,7 +329,7 @@ export class TemplesRepository extends BaseRepository<Temple> {
 
     if (data.imageUrl) {
       await runner.query(
-        `INSERT INTO temple_images (temple_id, url, is_primary, image_type, display_order) VALUES ($1, $2, true, 'COVER', 0)`,
+        `INSERT INTO temple_images (temple_id, url, is_primary, image_type, display_order) VALUES ($1, $2, true, 'BANNER', 0)`,
         [result.rows[0].id, data.imageUrl]
       );
     }
@@ -387,7 +387,7 @@ export class TemplesRepository extends BaseRepository<Temple> {
         );
       } else {
         await runner.query(
-          `INSERT INTO temple_images (temple_id, url, is_primary, image_type, display_order) VALUES ($1, $2, true, 'COVER', 0)`,
+          `INSERT INTO temple_images (temple_id, url, is_primary, image_type, display_order) VALUES ($1, $2, true, 'BANNER', 0)`,
           [id, data.imageUrl]
         );
       }
