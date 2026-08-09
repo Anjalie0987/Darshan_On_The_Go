@@ -1,0 +1,2 @@
+export const PG_CONNECTION = 'PG_CONNECTION';
+export const DATABASE_CONFIG = 'DATABASE_CONFIG';

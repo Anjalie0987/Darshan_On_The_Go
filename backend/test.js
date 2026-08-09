@@ -1,0 +1,1 @@
+const { Pool } = require('pg'); const pool = new Pool({ connectionString: 'postgresql://postgres:post123@localhost:5433/darshan' }); pool.query('SELECT COUNT(*) as "totalTemples" FROM temples WHERE deleted_at IS NULL').then(res => { console.log(res.rows[0]); pool.end(); });
