@@ -16,12 +16,19 @@ interface TempleCardProps {
 }
 
 export function TempleCard({ name, location, deity, image, isLive, slug, id }: TempleCardProps) {
+  let displayImage = image;
+  if (displayImage && displayImage.startsWith('/uploads/')) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const cleanBaseUrl = baseUrl.replace(/\/api\/v1\/?$/, '');
+    displayImage = `${cleanBaseUrl}${displayImage}`;
+  }
+
   return (
     <Link href={slug ? `/temples/${slug}` : '#'}>
       <Card className="overflow-hidden group cursor-pointer transition-all hover:shadow-lg border-border/50 h-full flex flex-col">
         <div className="relative aspect-[4/3] w-full overflow-hidden">
           <Image 
-            src={image} 
+            src={displayImage} 
             alt={name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

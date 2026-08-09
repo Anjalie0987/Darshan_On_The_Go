@@ -17,13 +17,20 @@ interface LiveStreamCardProps {
 
 export function LiveStreamCard({ title, templeName, thumbnail, isLive, viewers, slug, nextLiveAt }: LiveStreamCardProps) {
   const fallbackThumbnail = '/images/placeholder-temple.jpg'; // We can use a generic fallback
+
+  let displayThumbnail = thumbnail;
+  if (displayThumbnail && displayThumbnail.startsWith('/uploads/')) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const cleanBaseUrl = baseUrl.replace(/\/api\/v1\/?$/, '');
+    displayThumbnail = `${cleanBaseUrl}${displayThumbnail}`;
+  }
   
   return (
     <Link href={slug ? `/temples/${slug}` : '#'}>
       <Card className="overflow-hidden group cursor-pointer border-border/50 transition-all hover:shadow-lg h-full flex flex-col">
         <div className="relative aspect-video w-full overflow-hidden">
           <Image 
-            src={thumbnail || fallbackThumbnail} 
+            src={displayThumbnail || fallbackThumbnail} 
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

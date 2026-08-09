@@ -20,10 +20,7 @@ export function usePopularTemples() {
       const temples = response.data.data?.data || response.data?.data || response.data || [];
       
       return temples.map((temple: any) => {
-        let imageUrl = temple.imageUrl;
-        if (imageUrl && imageUrl.startsWith('/')) {
-          imageUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${imageUrl}`;
-        }
+        const imageUrl = temple.imageUrl;
         
         return {
           id: temple.id,

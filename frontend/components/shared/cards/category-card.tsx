@@ -7,11 +7,18 @@ interface CategoryCardProps {
 }
 
 export function CategoryCard({ name, image }: CategoryCardProps) {
+  let displayImage = image;
+  if (displayImage && displayImage.startsWith('/uploads/')) {
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const cleanBaseUrl = baseUrl.replace(/\/api\/v1\/?$/, '');
+    displayImage = `${cleanBaseUrl}${displayImage}`;
+  }
+
   return (
     <Card className="group cursor-pointer overflow-hidden border-border/50 hover:border-primary/50 transition-all flex items-center p-2 pr-6 gap-4 min-w-[200px] shrink-0">
       <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0">
         <Image 
-          src={image} 
+          src={displayImage} 
           alt={name}
           fill
           sizes="48px"
