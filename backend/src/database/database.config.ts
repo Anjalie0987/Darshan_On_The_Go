@@ -7,26 +7,31 @@ import { Transform } from 'class-transformer';
  */
 export class DatabaseEnvironmentVariables {
   @IsString()
-  @IsNotEmpty()
-  DATABASE_HOST!: string;
+  @IsOptional()
+  DATABASE_URL?: string;
+
+  @IsString()
+  @IsOptional()
+  DATABASE_HOST?: string;
 
   @IsInt()
   @Min(1)
   @Max(65535)
-  @Transform(({ value }) => parseInt(value, 10))
-  DATABASE_PORT!: number;
+  @IsOptional()
+  @Transform(({ value }) => (value ? parseInt(value, 10) : undefined))
+  DATABASE_PORT?: number;
 
   @IsString()
-  @IsNotEmpty()
-  DATABASE_NAME!: string;
+  @IsOptional()
+  DATABASE_NAME?: string;
 
   @IsString()
-  @IsNotEmpty()
-  DATABASE_USER!: string;
+  @IsOptional()
+  DATABASE_USER?: string;
 
   @IsString()
-  @IsNotEmpty()
-  DATABASE_PASSWORD!: string;
+  @IsOptional()
+  DATABASE_PASSWORD?: string;
 
   @IsBoolean()
   @IsOptional()

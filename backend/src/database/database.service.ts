@@ -31,18 +31,32 @@ export class DatabaseService
 
   onModuleInit() {
     this.logger.log('Initializing database module...');
-    this.pool = new Pool({
-      host: this.config.DATABASE_HOST,
-      port: this.config.DATABASE_PORT,
-      database: this.config.DATABASE_NAME,
-      user: this.config.DATABASE_USER,
-      password: this.config.DATABASE_PASSWORD,
-      ssl: false, // Force disabled for local environment where server does not support SSL
+    
+    const poolConfig: any = {
       min: this.config.DATABASE_POOL_MIN,
       max: this.config.DATABASE_POOL_MAX,
       idleTimeoutMillis: this.config.DATABASE_IDLE_TIMEOUT,
       connectionTimeoutMillis: this.config.DATABASE_CONNECTION_TIMEOUT,
-    });
+    };
+
+    if (this.config.DATABASE_URL) {
+      poolConfig.connectionString = this.config.DATABASE_URL;
+      // Many cloud providers like Neon require SSL
+      if (this.config.DATABASE_URL.includes('sslmode=require') || this.config.DATABASE_URL.includes('neon.tech')) {
+        poolConfig.ssl = { rejectUnauthorized: false };
+      } else {
+        poolConfig.ssl = this.config.DATABASE_SSL ? { rejectUnauthorized: false } : false;
+      }
+    } else {
+      poolConfig.host = this.config.DATABASE_HOST;
+      poolConfig.port = this.config.DATABASE_PORT;
+      poolConfig.database = this.config.DATABASE_NAME;
+      poolConfig.user = this.config.DATABASE_USER;
+      poolConfig.password = this.config.DATABASE_PASSWORD;
+      poolConfig.ssl = this.config.DATABASE_SSL ? { rejectUnauthorized: false } : false;
+    }
+
+    this.pool = new Pool(poolConfig);
 
     this.pool.on('error', (err) => {
       this.logger.logConnectionError(err);
