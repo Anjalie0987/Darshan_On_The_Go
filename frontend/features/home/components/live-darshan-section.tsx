@@ -17,9 +17,6 @@ export function LiveDarshanSection() {
             <h2 className="text-3xl font-heading font-bold tracking-tight mb-2">Live Darshan</h2>
             <p className="text-muted-foreground text-sm md:text-base">Experience the divine presence in real-time.</p>
           </div>
-          <Button variant="ghost" className="hidden md:flex text-primary hover:text-primary hover:bg-primary/10 group">
-            View All <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-          </Button>
         </div>
         
         {isLoading ? (
@@ -58,10 +55,6 @@ export function LiveDarshanSection() {
             ))}
           </div>
         )}
-        
-        <Button variant="outline" className="w-full mt-6 md:hidden">
-          View All Streams
-        </Button>
       </div>
     </section>
   );
