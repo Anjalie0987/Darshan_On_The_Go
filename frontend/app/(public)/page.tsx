@@ -2,7 +2,6 @@ import {
   HeroSection, 
   LiveDarshanSection, 
   PopularTemplesSection, 
-  CategoriesSection, 
   UpcomingAartisSection, 
   WhyChooseUsSection, 
   CTASection 
@@ -13,7 +12,6 @@ export default function HomePage() {
     <div className="flex flex-col w-full">
       <HeroSection />
       <LiveDarshanSection />
-      <CategoriesSection />
       <PopularTemplesSection />
       <UpcomingAartisSection />
       <WhyChooseUsSection />

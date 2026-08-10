@@ -22,6 +22,7 @@ export function CategoryCard({ name, image }: CategoryCardProps) {
           alt={name}
           fill
           sizes="48px"
+          unoptimized={displayImage ? (displayImage.includes('localhost') || displayImage.includes('127.0.0.1')) : false}
           className="object-cover group-hover:scale-110 transition-transform duration-500"
         />
       </div>

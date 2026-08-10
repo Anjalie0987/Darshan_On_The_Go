@@ -1,12 +1,6 @@
 // Placeholder Images using Unsplash source (abstract/nature for now to simulate Premium aesthetic)
 
-export const MOCK_CATEGORIES: any[] = [];
 
-export const MOCK_TEMPLES: any[] = [];
-
-export const MOCK_LIVE_STREAMS: any[] = [];
-
-export const MOCK_AARTIS: any[] = [];
 
 export const MOCK_TESTIMONIALS = [
   {

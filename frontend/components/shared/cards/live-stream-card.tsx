@@ -34,6 +34,7 @@ export function LiveStreamCard({ title, templeName, thumbnail, isLive, viewers, 
             alt={title}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            unoptimized={displayThumbnail ? (displayThumbnail.includes('localhost') || displayThumbnail.includes('127.0.0.1')) : false}
             className="object-cover transition-transform duration-500 group-hover:scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

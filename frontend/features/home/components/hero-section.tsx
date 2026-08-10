@@ -1,14 +1,48 @@
 'use client';
 
-import { Search, Sparkles } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Search, Sparkles, MapPin, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LiveStreamCard } from '@/components/shared/cards';
 import { useLiveStreams } from '../hooks/use-live-streams';
+import { useSearchTemples } from '../hooks/use-search-temples';
+import Link from 'next/link';
 
 export function HeroSection() {
   const { data: streams, isLoading } = useLiveStreams();
   const featuredStream = streams && streams.length > 0 ? streams[0] : null;
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
+  
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const { data: searchResults, isLoading: isSearching } = useSearchTemples(debouncedQuery);
+  const showDropdown = isFocused && searchQuery.length > 1;
+
+  const handleTrendingClick = (term: string) => {
+    setSearchQuery(term);
+    setIsFocused(true);
+  };
 
   return (
     <section className="relative pt-24 pb-16 md:pt-32 md:pb-24 overflow-hidden">
@@ -34,12 +68,15 @@ export function HeroSection() {
               Experience live darshans, participate in daily aartis, and connect with sacred temples across India from anywhere in the world.
             </p>
             
-            {/* Search UI Component (Mock) */}
-            <div className="relative max-w-xl mt-4">
+            {/* Search UI Component */}
+            <div className="relative max-w-xl mt-4" ref={dropdownRef}>
               <div className="relative flex items-center">
                 <Search className="absolute left-4 w-5 h-5 text-muted-foreground" />
                 <Input 
                   type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsFocused(true)}
                   placeholder="Search temples, deities, or live streams..." 
                   className="pl-12 pr-32 h-14 rounded-full bg-card shadow-sm border-border text-base focus-visible:ring-primary"
                 />
@@ -47,10 +84,46 @@ export function HeroSection() {
                   Search
                 </Button>
               </div>
+              
+              {/* Search Results Dropdown */}
+              {showDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                  {isSearching ? (
+                    <div className="flex items-center justify-center py-6 text-muted-foreground">
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      Searching...
+                    </div>
+                  ) : searchResults && searchResults.length > 0 ? (
+                    <div className="max-h-[300px] overflow-y-auto py-2">
+                      {searchResults.map((temple: any) => (
+                        <Link 
+                          key={temple.id} 
+                          href={`/temples/${temple.slug}`}
+                          className="flex items-center gap-3 px-4 py-3 hover:bg-muted transition-colors"
+                          onClick={() => setIsFocused(false)}
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium">{temple.name}</span>
+                            <div className="flex items-center text-xs text-muted-foreground mt-1">
+                              <MapPin className="w-3 h-3 mr-1" />
+                              {temple.city || temple.state ? `${temple.city || ''}${temple.city && temple.state ? ', ' : ''}${temple.state || ''}` : 'Location unknown'}
+                            </div>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-6 text-center text-sm text-muted-foreground">
+                      No temples found for "{debouncedQuery}"
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex gap-2 mt-3 ml-4 text-xs font-medium text-muted-foreground">
                 <span>Trending:</span>
-                <span className="hover:text-primary cursor-pointer transition-colors">Kashi Vishwanath</span>
-                <span className="hover:text-primary cursor-pointer transition-colors">Kedarnath</span>
+                <span onClick={() => handleTrendingClick('Kashi Vishwanath')} className="hover:text-primary cursor-pointer transition-colors">Kashi Vishwanath</span>
+                <span onClick={() => handleTrendingClick('Kedarnath')} className="hover:text-primary cursor-pointer transition-colors">Kedarnath</span>
               </div>
             </div>
           </div>

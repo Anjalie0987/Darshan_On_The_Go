@@ -29,4 +29,28 @@ export class AartiSchedulesRepository extends BaseRepository<AartiSchedule> {
     );
     return result.rows;
   }
+
+  async findTodaysAartis(dayOfWeek: number, client?: DbClient): Promise<any[]> {
+    const runner = this.getClient(client);
+    const result = await runner.query(
+      `SELECT 
+         a.*,
+         t.name as temple_name,
+         t.slug as temple_slug,
+         c.name as temple_city,
+         s.name as temple_state,
+         (SELECT url FROM temple_images WHERE temple_id = t.id AND is_primary = true LIMIT 1) as "temple_image_url"
+       FROM aarti_schedules a
+       JOIN temples t ON a.temple_id = t.id
+       LEFT JOIN cities c ON t.city_id = c.id
+       LEFT JOIN states s ON t.state_id = s.id
+       WHERE t.is_active = true 
+         AND t.status = 'PUBLISHED'
+         AND t.deleted_at IS NULL
+         AND (a.day_of_week IS NULL OR a.day_of_week = $1)
+       ORDER BY a.time_start ASC`,
+      [dayOfWeek]
+    );
+    return result.rows;
+  }
 }

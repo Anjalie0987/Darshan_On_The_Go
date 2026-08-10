@@ -15,8 +15,8 @@ export function RecentActivity() {
       try {
         const data = await templeService.getRecentActivity();
         setRecentTemples(data || []);
-      } catch (error) {
-        console.error('Failed to fetch recent activity', error);
+      } catch (error: any) {
+        console.warn('Failed to fetch recent activity:', error?.message || 'Unknown error');
       } finally {
         setIsLoading(false);
       }

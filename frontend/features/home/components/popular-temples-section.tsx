@@ -2,11 +2,12 @@
 
 import { TempleCard } from '@/components/shared/cards';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Loader2 } from 'lucide-react';
+import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { usePopularTemples } from '../hooks/use-popular-temples';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function PopularTemplesSection() {
-  const { data: temples, isLoading } = usePopularTemples();
+  const { data: temples, isLoading, isError, refetch } = usePopularTemples();
 
   return (
     <section className="py-16 bg-muted/30">
@@ -22,8 +23,33 @@ export function PopularTemplesSection() {
         </div>
         
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="flex flex-col space-y-3">
+                <Skeleton className="h-[200px] w-full rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[200px]" />
+                  <Skeleton className="h-4 w-[150px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : isError ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-destructive/5">
+            <AlertCircle className="w-10 h-10 text-destructive mb-4" />
+            <h3 className="text-lg font-semibold mb-2">Failed to load temples</h3>
+            <p className="text-muted-foreground mb-4">There was a problem connecting to the server.</p>
+            <Button onClick={() => refetch()} variant="outline">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        ) : temples?.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center border rounded-lg bg-muted/10 border-dashed">
+            <h3 className="text-xl font-semibold mb-2 text-muted-foreground">No temples found</h3>
+            <p className="text-muted-foreground max-w-md">
+              We couldn't find any popular temples at the moment. Please check back later.
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

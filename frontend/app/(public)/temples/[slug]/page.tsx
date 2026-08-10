@@ -22,7 +22,7 @@ export default function TempleDetailsPage() {
     const fetchTemple = async () => {
       try {
         const response = await apiClient.get(`/temples/${slug}`);
-        setTemple(response.data);
+        setTemple(response.data?.data || response.data);
       } catch (err) {
         console.error(err);
         setError(true);
