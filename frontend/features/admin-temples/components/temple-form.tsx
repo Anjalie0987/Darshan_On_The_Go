@@ -39,7 +39,7 @@ export const templeFormSchema = z.object({
   youtubeChannelUrl: z.string().regex(/^https?:\/\/(www\.)?youtube\.com\/(channel\/UC[\w-]+|@[\w.-]+)$/, 'Must be a valid YouTube Channel URL (e.g. /@channelname or /channel/UC...)').or(z.literal('')),
   isActive: z.boolean().default(true),
 }).refine(data => {
-  if (data.category === 'Custom' && !data.customCategory?.trim()) {
+  if ((data.category === 'Custom' || data.category === 'Other') && !data.customCategory?.trim()) {
     return false;
   }
   return true;
@@ -139,7 +139,7 @@ export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleF
     try {
       const payload = {
         ...data,
-        category: data.category === 'Custom' && data.customCategory ? data.customCategory : data.category,
+        category: (data.category === 'Custom' || data.category === 'Other') && data.customCategory ? data.customCategory : data.category,
         coverImage: coverFile,
       } as TempleFormValues;
 
@@ -230,7 +230,7 @@ export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleF
                     ))}
                   </SelectContent>
                 </Select>
-                {watch('category') === 'Custom' && (
+                {(watch('category') === 'Custom' || watch('category') === 'Other') && (
                   <div className="mt-2">
                     <Input placeholder="Enter custom category" {...register('customCategory')} />
                     {errors.customCategory && <p className="text-sm text-red-500">{errors.customCategory.message}</p>}
