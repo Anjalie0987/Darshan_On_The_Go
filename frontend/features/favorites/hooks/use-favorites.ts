@@ -47,7 +47,7 @@ export function useFavoriteStatus(templeId: string) {
         return { isFavorited: false };
       }
     },
-    enabled: !!templeId,
+    enabled: !!templeId && typeof window !== 'undefined' && !!localStorage.getItem('access_token'),
     retry: false,
   });
 }

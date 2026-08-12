@@ -22,10 +22,10 @@ export class LiveStreamSchedulerService {
   async handleLiveStreamMonitoring() {
     this.logger.log('Starting Live Stream Monitoring Scheduler');
     
-    if (!this.isWithinMonitoringWindow()) {
-      this.logger.log('Current time is outside of monitoring windows. Skipping check.');
-      return;
-    }
+    // if (!this.isWithinMonitoringWindow()) {
+    //   this.logger.log('Current time is outside of monitoring windows. Skipping check.');
+    //   return;
+    // }
 
     const batchSize = this.configService.get<number>('LIVE_CHECK_BATCH_SIZE') || 5;
     

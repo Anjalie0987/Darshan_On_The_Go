@@ -319,11 +319,13 @@ export class TemplesRepository extends BaseRepository<Temple> {
     const result = await runner.query(
       `INSERT INTO temples (
         name, slug, description, category_id, state_id, city_id, 
-        youtube_channel_url, is_active, status, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *`,
+        youtube_channel_url, youtube_channel_id, youtube_channel_name, youtube_channel_handle, youtube_verification_status,
+        is_active, status, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()) RETURNING *`,
       [
         data.name, data.slug, data.description || null, catRes.rows[0].id, stateRes.rows[0].id, cityRes.rows[0].id,
-        data.youtubeChannelUrl || null, isActive, isActive ? 'PUBLISHED' : 'DRAFT'
+        data.youtubeChannelUrl || null, data.youtubeChannelId || null, data.youtubeChannelName || null, data.youtubeChannelHandle || null, data.youtubeVerificationStatus || null,
+        isActive, isActive ? 'PUBLISHED' : 'DRAFT'
       ]
     );
 
@@ -362,11 +364,13 @@ export class TemplesRepository extends BaseRepository<Temple> {
     const result = await runner.query(
       `UPDATE temples SET 
         name = $1, slug = $2, description = $3, category_id = $4, state_id = $5, city_id = $6, 
-        youtube_channel_url = $7, is_active = $8, status = $9, updated_at = NOW()
-       WHERE id = $10 RETURNING *`,
+        youtube_channel_url = $7, youtube_channel_id = $8, youtube_channel_name = $9, youtube_channel_handle = $10, youtube_verification_status = $11,
+        is_active = $12, status = $13, updated_at = NOW()
+       WHERE id = $14 RETURNING *`,
       [
         data.name, data.slug, data.description || null, catRes.rows[0].id, stateRes.rows[0].id, cityRes.rows[0].id,
-        data.youtubeChannelUrl || null, isActive, isActive ? 'PUBLISHED' : 'DRAFT',
+        data.youtubeChannelUrl || null, data.youtubeChannelId || null, data.youtubeChannelName || null, data.youtubeChannelHandle || null, data.youtubeVerificationStatus || null,
+        isActive, isActive ? 'PUBLISHED' : 'DRAFT',
         id
       ]
     );

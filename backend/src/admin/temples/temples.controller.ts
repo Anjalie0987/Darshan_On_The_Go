@@ -2,6 +2,7 @@ import { Controller, Get, Query, UseGuards, HttpException, HttpStatus, Post, Put
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AdminJwtAuthGuard } from '../auth/guards/admin-jwt-auth.guard';
 import { TemplesRepository } from '../../database/repositories/temples.repository';
+import { YoutubeService } from '../../youtube/youtube.service';
 import { ApiUnauthorized } from '../../swagger/swagger.decorators';
 import { Public } from '../../common/decorators/public.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -24,7 +25,10 @@ const multerOptions = {
 @UseGuards(AdminJwtAuthGuard)
 @ApiBearerAuth('JWT-auth')
 export class AdminTemplesController {
-  constructor(private readonly templesRepository: TemplesRepository) {}
+  constructor(
+    private readonly templesRepository: TemplesRepository,
+    private readonly youtubeService: YoutubeService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all temples for admin with filters' })
@@ -77,6 +81,15 @@ export class AdminTemplesController {
       if (file) {
         body.imageUrl = `/uploads/temples/${file.filename}`;
       }
+      
+      if (body.youtubeChannelUrl) {
+        const verifiedData = await this.youtubeService.verifyChannel(body.youtubeChannelUrl);
+        body.youtubeChannelId = verifiedData.channelId;
+        body.youtubeChannelName = verifiedData.channelName;
+        body.youtubeChannelHandle = verifiedData.channelHandle;
+        body.youtubeVerificationStatus = 'VERIFIED';
+      }
+      
       return await this.templesRepository.createAdminTemple(body);
     } catch (error: any) {
       console.error('Error creating temple:', error);
@@ -96,6 +109,15 @@ export class AdminTemplesController {
       if (file) {
         body.imageUrl = `/uploads/temples/${file.filename}`;
       }
+      
+      if (body.youtubeChannelUrl) {
+        const verifiedData = await this.youtubeService.verifyChannel(body.youtubeChannelUrl);
+        body.youtubeChannelId = verifiedData.channelId;
+        body.youtubeChannelName = verifiedData.channelName;
+        body.youtubeChannelHandle = verifiedData.channelHandle;
+        body.youtubeVerificationStatus = 'VERIFIED';
+      }
+      
       return await this.templesRepository.updateAdminTemple(id, body);
     } catch (error: any) {
       console.error('Error updating temple:', error);
