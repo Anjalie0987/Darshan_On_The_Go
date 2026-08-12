@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export function CTASection() {
   return (
@@ -17,9 +18,11 @@ export function CTASection() {
             Join the Darshan On The Go community today. Create an account to save your favorite temples, set aarti reminders, and experience premium live streams.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 mt-4 w-full sm:w-auto">
-            <Button size="lg" variant="secondary" className="px-8 font-semibold w-full sm:w-auto">
-              Create Free Account
-            </Button>
+            <Link href="https://darshanonthego.com/register" passHref className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="px-8 font-semibold w-full">
+                Create Free Account
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
