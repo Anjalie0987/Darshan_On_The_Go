@@ -51,7 +51,7 @@ export function useTemples(params: UseTemplesParams) {
       const responseData = response.data.data || response.data;
       return {
         ...responseData,
-        items: responseData.items?.map((item: any) => ({
+        items: (responseData.items || responseData.data)?.map((item: any) => ({
           id: item.id,
           name: item.name,
           slug: item.slug,
