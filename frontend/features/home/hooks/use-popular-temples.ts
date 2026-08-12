@@ -16,7 +16,7 @@ export function usePopularTemples() {
   return useQuery<PopularTemple[]>({
     queryKey: ['popular-temples'],
     queryFn: async () => {
-      const response = await apiClient.get('/temples?limit=8');
+      const response = await apiClient.get('/temples?limit=100');
       const temples = response.data.data?.data || response.data?.data || response.data || [];
       
       return temples.map((temple: any) => {
