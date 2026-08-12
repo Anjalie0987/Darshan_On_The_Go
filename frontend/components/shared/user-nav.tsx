@@ -61,7 +61,13 @@ export function UserNav() {
           </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive cursor-pointer focus:text-destructive" onClick={() => logout()}>
+        <DropdownMenuItem 
+          className="text-destructive cursor-pointer focus:text-destructive" 
+          onSelect={(e) => {
+            e.preventDefault();
+            logout();
+          }}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

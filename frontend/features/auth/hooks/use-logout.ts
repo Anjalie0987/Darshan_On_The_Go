@@ -19,7 +19,7 @@ export function useLogout() {
     onSettled: () => {
       TokenStorage.clearAll();
       queryClient.clear(); // Clears all cache
-      router.push('/login');
+      window.location.href = '/login';
     },
   });
 }
