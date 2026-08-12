@@ -6,9 +6,9 @@ import { Request } from 'express';
 // Extend Express Request to include user payload from JwtAuthGuard
 interface AuthenticatedRequest extends Request {
   user: {
-    userId: string;
+    id: string;
     email: string;
-    role: string;
+    roles: string[];
   };
 }
 
@@ -20,7 +20,7 @@ export class FavoritesController {
   @Get()
   async getFavorites(@Req() req: AuthenticatedRequest) {
     try {
-      const favorites = await this.favoritesRepository.getUserFavorites(req.user.userId);
+      const favorites = await this.favoritesRepository.getUserFavorites(req.user.id);
       return favorites;
     } catch (error) {
       throw new HttpException('Failed to fetch favorites', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -30,7 +30,7 @@ export class FavoritesController {
   @Get(':templeId')
   async getFavoriteStatus(@Req() req: AuthenticatedRequest, @Param('templeId') templeId: string) {
     try {
-      const isFavorited = await this.favoritesRepository.hasFavorite(req.user.userId, templeId);
+      const isFavorited = await this.favoritesRepository.hasFavorite(req.user.id, templeId);
       return { isFavorited };
     } catch (error) {
       throw new HttpException('Failed to check favorite status', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -40,7 +40,7 @@ export class FavoritesController {
   @Post(':templeId')
   async addFavorite(@Req() req: AuthenticatedRequest, @Param('templeId') templeId: string) {
     try {
-      await this.favoritesRepository.addFavorite(req.user.userId, templeId);
+      await this.favoritesRepository.addFavorite(req.user.id, templeId);
       return { success: true };
     } catch (error) {
       throw new HttpException('Failed to add favorite', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -50,7 +50,7 @@ export class FavoritesController {
   @Delete(':templeId')
   async removeFavorite(@Req() req: AuthenticatedRequest, @Param('templeId') templeId: string) {
     try {
-      await this.favoritesRepository.removeFavorite(req.user.userId, templeId);
+      await this.favoritesRepository.removeFavorite(req.user.id, templeId);
       return { success: true };
     } catch (error) {
       throw new HttpException('Failed to remove favorite', HttpStatus.INTERNAL_SERVER_ERROR);

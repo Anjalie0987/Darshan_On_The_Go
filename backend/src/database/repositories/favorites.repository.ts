@@ -49,7 +49,7 @@ export class FavoritesRepository {
       SELECT 
         t.id, t.name, t.slug, t.is_live,
         c.name as city, s.name as state, tc.name as category,
-        t.youtube_channel_logo as image_url,
+        (SELECT url FROM temple_images WHERE temple_id = t.id AND is_primary = true LIMIT 1) as image_url,
         uf.created_at as favorited_at
       FROM user_favorites uf
       JOIN temples t ON uf.temple_id = t.id
