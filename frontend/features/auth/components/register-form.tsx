@@ -101,7 +101,7 @@ export function RegisterForm() {
           <Label htmlFor="fullName">Full Name</Label>
           <Input
             id="fullName"
-            placeholder="John Doe"
+            placeholder="Rishaan"
             {...register('fullName')}
             className={errors.fullName ? 'border-destructive focus-visible:ring-destructive' : ''}
           />
