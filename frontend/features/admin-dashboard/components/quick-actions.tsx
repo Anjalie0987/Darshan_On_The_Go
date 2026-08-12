@@ -38,9 +38,9 @@ export function QuickActions() {
           <Link key={index} href={action.href} className="block">
             <Button
               variant={action.variant}
-              className="w-full h-auto py-4 flex flex-col items-center gap-3 justify-center text-center group"
+              className="w-full h-full min-h-[120px] py-4 px-4 flex flex-col items-center gap-3 justify-center text-center group whitespace-normal"
             >
-              <action.icon className="w-6 h-6 mb-1 group-hover:scale-110 transition-transform" />
+              <action.icon className="w-6 h-6 mb-1 group-hover:scale-110 transition-transform shrink-0" />
               <div className="space-y-1">
                 <div className="font-semibold">{action.title}</div>
                 <div className="text-xs opacity-80 font-normal hidden sm:block">
