@@ -1,6 +1,7 @@
 'use client';
 
 import { TempleCard } from '@/components/shared/cards';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { usePopularTemples } from '../hooks/use-popular-temples';
@@ -17,8 +18,10 @@ export function PopularTemplesSection() {
             <h2 className="text-3xl font-heading font-bold tracking-tight mb-2">Popular Temples</h2>
             <p className="text-muted-foreground text-sm md:text-base">Discover the most revered spiritual destinations.</p>
           </div>
-          <Button variant="ghost" className="hidden md:flex text-primary hover:text-primary hover:bg-primary/10 group">
-            Explore All <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+          <Button variant="ghost" className="hidden md:flex text-primary hover:text-primary hover:bg-primary/10 group" asChild>
+            <Link href="/temples">
+              Explore All <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
+            </Link>
           </Button>
         </div>
         
@@ -59,8 +62,10 @@ export function PopularTemplesSection() {
           </div>
         )}
         
-        <Button variant="outline" className="w-full mt-6 md:hidden bg-background">
-          Explore All Temples
+        <Button variant="outline" className="w-full mt-6 md:hidden bg-background" asChild>
+          <Link href="/temples">
+            Explore All Temples
+          </Link>
         </Button>
       </div>
     </section>
