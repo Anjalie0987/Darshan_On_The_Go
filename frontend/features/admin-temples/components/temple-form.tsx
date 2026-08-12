@@ -16,7 +16,7 @@ import { Loader2, ImagePlus, X } from 'lucide-react';
 import { templeService } from '../services/temples.service';
 
 const CATEGORIES = [
-  'Jyotirlinga', 'Shakti Peeth', 'Shiva', 'Vishnu', 'Hanuman', 'Ganesh', 'Gurudwara', 'Other'
+  'Jyotirlinga', 'Shakti Peeth', 'Shiva', 'Vishnu', 'Hanuman', 'Ganesh', 'Gurudwara', 'Other', 'Custom'
 ];
 
 const STATES = [
@@ -35,8 +35,17 @@ export const templeFormSchema = z.object({
   state: z.string().min(1, 'State is required'),
   city: z.string().min(1, 'City is required'),
   category: z.string().min(1, 'Category is required'),
+  customCategory: z.string().optional(),
   youtubeChannelUrl: z.string().regex(/^https?:\/\/(www\.)?youtube\.com\/(channel\/UC[\w-]+|@[\w.-]+)$/, 'Must be a valid YouTube Channel URL (e.g. /@channelname or /channel/UC...)').or(z.literal('')),
   isActive: z.boolean().default(true),
+}).refine(data => {
+  if (data.category === 'Custom' && !data.customCategory?.trim()) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'Please specify the custom category',
+  path: ['customCategory'],
 });
 
 export type TempleFormValues = z.infer<typeof templeFormSchema> & {
@@ -52,6 +61,9 @@ interface TempleFormProps {
 export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleFormProps) {
   const router = useRouter();
 
+  const defaultCategory = initialData?.category;
+  const isCustomInitially = defaultCategory && !CATEGORIES.includes(defaultCategory) && defaultCategory !== 'Custom';
+
   const form = useForm<z.infer<typeof templeFormSchema>>({
     resolver: zodResolver(templeFormSchema as any),
     defaultValues: {
@@ -60,7 +72,8 @@ export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleF
       description: initialData?.description || '',
       state: initialData?.state || '',
       city: initialData?.city || '',
-      category: initialData?.category || '',
+      category: isCustomInitially ? 'Custom' : (defaultCategory || ''),
+      customCategory: isCustomInitially ? defaultCategory : '',
       youtubeChannelUrl: initialData?.youtubeChannelUrl || '',
       isActive: initialData?.isActive ?? true,
     },
@@ -126,8 +139,13 @@ export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleF
     try {
       const payload = {
         ...data,
+        category: data.category === 'Custom' && data.customCategory ? data.customCategory : data.category,
         coverImage: coverFile,
       } as TempleFormValues;
+
+      if ('customCategory' in payload) {
+        delete (payload as any).customCategory;
+      }
 
       await onSubmit(payload);
     } catch (error) {
@@ -202,7 +220,7 @@ export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleF
 
               <div className="space-y-2">
                 <Label htmlFor="category">Category *</Label>
-                <Select onValueChange={(v) => setValue('category', v as string, { shouldValidate: true })} defaultValue={initialData?.category || ""}>
+                <Select onValueChange={(v) => setValue('category', v as string, { shouldValidate: true })} defaultValue={form.getValues('category') || ""}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
@@ -212,6 +230,12 @@ export function TempleForm({ initialData, onSubmit, isLoading = false }: TempleF
                     ))}
                   </SelectContent>
                 </Select>
+                {watch('category') === 'Custom' && (
+                  <div className="mt-2">
+                    <Input placeholder="Enter custom category" {...register('customCategory')} />
+                    {errors.customCategory && <p className="text-sm text-red-500">{errors.customCategory.message}</p>}
+                  </div>
+                )}
                 {errors.category && <p className="text-sm text-red-500">{errors.category.message}</p>}
               </div>
             </CardContent>
