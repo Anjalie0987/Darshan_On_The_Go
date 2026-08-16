@@ -18,7 +18,7 @@ export interface LiveStream {
   duration_seconds: number | null;
   started_at: Date;
   ended_at: Date | null;
-  last_updated_at: Date;
+  updated_at: Date;
 }
 
 @Injectable()
@@ -77,7 +77,7 @@ export class LiveStreamsRepository extends BaseRepository<LiveStream> {
     if (existing) {
       const result = await runner.query(
         `UPDATE live_streams 
-         SET title = $1, thumbnail_url = $2, stream_url = $3, embed_url = $4, last_updated_at = NOW()
+         SET title = $1, thumbnail_url = $2, stream_url = $3, embed_url = $4, updated_at = NOW()
          WHERE id = $5 RETURNING *`,
         [
           streamData.title || existing.title, 
@@ -108,7 +108,7 @@ export class LiveStreamsRepository extends BaseRepository<LiveStream> {
   async markStreamEnded(streamId: string, client?: DbClient): Promise<void> {
     const runner = this.getClient(client);
     await runner.query(
-      `UPDATE live_streams SET status = 'ENDED', ended_at = NOW(), last_updated_at = NOW() WHERE id = $1`,
+      `UPDATE live_streams SET status = 'ENDED', ended_at = NOW(), updated_at = NOW() WHERE id = $1`,
       [streamId]
     );
   }

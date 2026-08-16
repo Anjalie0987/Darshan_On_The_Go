@@ -16,18 +16,17 @@ export class LiveStreamSchedulerService {
     private readonly liveStreamsRepository: LiveStreamsRepository,
   ) {}
 
-  // Run every 15 minutes by default, but we control the exact execution inside the handler
-  // based on the time windows so the Cron string itself can just run frequently.
-  @Cron('*/15 * * * *')
+  // Run every 30 minutes. The method will check monitoring windows.
+  @Cron('*/30 * * * *')
   async handleLiveStreamMonitoring() {
     this.logger.log('Starting Live Stream Monitoring Scheduler');
     
-    // if (!this.isWithinMonitoringWindow()) {
-    //   this.logger.log('Current time is outside of monitoring windows. Skipping check.');
-    //   return;
-    // }
+    if (!this.isWithinMonitoringWindow()) {
+      this.logger.log('Outside YouTube monitoring window. Skipping synchronization.');
+      return;
+    }
 
-    const batchSize = this.configService.get<number>('LIVE_CHECK_BATCH_SIZE') || 5;
+    const batchSize = this.configService.get<number>('LIVE_CHECK_BATCH_SIZE') || 20;
     
     try {
       const startTime = Date.now();
@@ -40,19 +39,30 @@ export class LiveStreamSchedulerService {
       let apiErrors = 0;
 
       for (const temple of eligibleTemples) {
-        if (!temple.youtube_channel_id) continue;
+        if (!temple.youtube_channel_id || !temple.uploads_playlist_id) {
+          continue;
+        }
         
         try {
-          const liveData = await this.youtubeService.checkActiveLiveStream(temple.youtube_channel_id);
+          const videoIds = await this.youtubeService.getRecentVideosFromPlaylist(temple.uploads_playlist_id, 10);
           
-          if (liveData) {
+          if (videoIds.length === 0) {
+            offlineChannels++;
+            continue;
+          }
+
+          const liveDetails = await this.youtubeService.getVideoLiveDetails(videoIds);
+          
+          const activeLiveStream = liveDetails.find(video => video.liveBroadcastContent === 'live');
+          
+          if (activeLiveStream) {
             // Upsert live stream
             await this.liveStreamsRepository.upsertStream(temple.id, {
-              stream_reference: liveData.videoId,
-              stream_url: liveData.liveUrl,
-              embed_url: liveData.embedUrl,
-              title: liveData.title,
-              thumbnail_url: liveData.thumbnailUrl,
+              stream_reference: activeLiveStream.videoId,
+              stream_url: activeLiveStream.liveUrl,
+              embed_url: activeLiveStream.embedUrl,
+              title: activeLiveStream.title,
+              thumbnail_url: activeLiveStream.thumbnailUrl,
             });
             
             // Mark temple as live
@@ -71,7 +81,7 @@ export class LiveStreamSchedulerService {
           }
         } catch (error: any) {
           apiErrors++;
-          this.logger.error(`Error checking channel ${temple.youtube_channel_id} for temple ${temple.id}: ${error.message}`);
+          this.logger.error(`Error checking channel ${temple.youtube_channel_id} (playlist: ${temple.uploads_playlist_id}) for temple ${temple.id}: ${error.message}`);
           
           // Still update the timestamp so we don't get stuck on a failing temple
           await this.templesRepository.updateLastLiveCheckAt(temple.id, temple.is_live);
@@ -89,10 +99,14 @@ export class LiveStreamSchedulerService {
    * Evaluates if the current time (converted to IST) falls within the configured windows.
    */
   private isWithinMonitoringWindow(): boolean {
-    const morningStart = this.configService.get<string>('MORNING_START') || '04:00';
-    const morningEnd = this.configService.get<string>('MORNING_END') || '10:00';
-    const eveningStart = this.configService.get<string>('EVENING_START') || '16:00';
-    const eveningEnd = this.configService.get<string>('EVENING_END') || '22:00';
+    const morningStart = this.configService.get<string>('YOUTUBE_MORNING_START') || '04:00';
+    const morningEnd = this.configService.get<string>('YOUTUBE_MORNING_END') || '09:00';
+    
+    const eveningStart = this.configService.get<string>('YOUTUBE_EVENING_START') || '16:00';
+    const eveningEnd = this.configService.get<string>('YOUTUBE_EVENING_END') || '18:00';
+    
+    const nightStart = this.configService.get<string>('YOUTUBE_NIGHT_START') || '20:00';
+    const nightEnd = this.configService.get<string>('YOUTUBE_NIGHT_END') || '22:00';
 
     // Get current time in IST
     const now = new Date();
@@ -111,7 +125,8 @@ export class LiveStreamSchedulerService {
 
     const isMorning = currentTimeMinutes >= parseTime(morningStart) && currentTimeMinutes <= parseTime(morningEnd);
     const isEvening = currentTimeMinutes >= parseTime(eveningStart) && currentTimeMinutes <= parseTime(eveningEnd);
+    const isNight = currentTimeMinutes >= parseTime(nightStart) && currentTimeMinutes <= parseTime(nightEnd);
 
-    return isMorning || isEvening;
+    return isMorning || isEvening || isNight;
   }
 }

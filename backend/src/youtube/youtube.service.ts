@@ -11,6 +11,7 @@ export interface VerifiedChannelData {
   description: string;
   publishedAt: string;
   customUrl: string | null;
+  uploadsPlaylistId: string | null;
 }
 
 @Injectable()
@@ -47,7 +48,7 @@ export class YoutubeService {
 
     try {
       const params: Record<string, string> = {
-        part: 'snippet,statistics',
+        part: 'snippet,statistics,contentDetails',
         key: this.apiKey,
       };
 
@@ -79,6 +80,7 @@ export class YoutubeService {
         description: snippet.description || '',
         publishedAt: snippet.publishedAt || '',
         customUrl: snippet.customUrl || null,
+        uploadsPlaylistId: channel.contentDetails?.relatedPlaylists?.uploads || null,
       };
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof HttpException) {
@@ -97,50 +99,90 @@ export class YoutubeService {
     }
   }
 
-  async checkActiveLiveStream(channelId: string) {
-    if (!this.apiKey) {
-      throw new HttpException('YouTube API Key is not configured', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
+  /**
+   * Fetches the latest video IDs from a channel's uploads playlist.
+   */
+  async getRecentVideosFromPlaylist(playlistId: string, maxResults = 5): Promise<string[]> {
     try {
-      const params: Record<string, string> = {
-        part: 'snippet',
-        channelId,
-        eventType: 'live',
-        type: 'video',
+      const params = {
+        part: 'contentDetails',
+        playlistId: playlistId,
+        maxResults: maxResults,
         key: this.apiKey,
       };
 
       const response = await lastValueFrom(
-        this.httpService.get(`${this.baseUrl}/search`, { params }),
+        this.httpService.get(`${this.baseUrl}/playlistItems`, { params }),
       );
 
       const items = response.data.items;
-
       if (!items || items.length === 0) {
-        return null; // No active live stream found
+        return [];
       }
 
-      const stream = items[0];
-      const snippet = stream.snippet;
-      const videoId = stream.id.videoId;
-
-      return {
-        videoId,
-        title: snippet.title,
-        thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
-        liveUrl: `https://www.youtube.com/watch?v=${videoId}`,
-        embedUrl: `https://www.youtube.com/embed/${videoId}`,
-        startedAt: snippet.publishedAt,
-        channelId: snippet.channelId,
-        channelName: snippet.channelTitle,
-      };
+      return items.map((item: any) => item.contentDetails?.videoId).filter(Boolean);
     } catch (error) {
       const axiosError = error as any;
-      if (axiosError.response?.status === 403) {
+      const status = axiosError.response?.status;
+      if (status === 403) {
         throw new HttpException('YouTube API quota exceeded or forbidden', HttpStatus.FORBIDDEN);
       }
-      throw new HttpException('Failed to check active live stream', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Failed to fetch recent videos from playlist', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  /**
+   * Fetches live streaming details for a batch of video IDs.
+   * Returns a map of videoId -> live data.
+   */
+  async getVideoLiveDetails(videoIds: string[]): Promise<any[]> {
+    if (!videoIds || videoIds.length === 0) return [];
+
+    try {
+      // API allows max 50 ids per request.
+      const batchIds = videoIds.slice(0, 50).join(',');
+      
+      const params = {
+        part: 'snippet,liveStreamingDetails',
+        id: batchIds,
+        key: this.apiKey,
+      };
+
+      const response = await lastValueFrom(
+        this.httpService.get(`${this.baseUrl}/videos`, { params }),
+      );
+
+      const items = response.data.items;
+      if (!items) {
+        return [];
+      }
+
+      return items.map((item: any) => {
+        const snippet = item.snippet;
+        const liveStreamingDetails = item.liveStreamingDetails;
+        
+        return {
+          videoId: item.id,
+          title: snippet.title,
+          thumbnailUrl: snippet.thumbnails?.high?.url || snippet.thumbnails?.default?.url || '',
+          liveUrl: `https://www.youtube.com/watch?v=${item.id}`,
+          embedUrl: `https://www.youtube.com/embed/${item.id}`,
+          publishedAt: snippet.publishedAt,
+          channelId: snippet.channelId,
+          channelName: snippet.channelTitle,
+          liveBroadcastContent: snippet.liveBroadcastContent, // 'none', 'upcoming', 'live'
+          actualStartTime: liveStreamingDetails?.actualStartTime || null,
+          actualEndTime: liveStreamingDetails?.actualEndTime || null,
+          scheduledStartTime: liveStreamingDetails?.scheduledStartTime || null,
+        };
+      });
+    } catch (error) {
+      const axiosError = error as any;
+      const status = axiosError.response?.status;
+      if (status === 403) {
+        throw new HttpException('YouTube API quota exceeded or forbidden', HttpStatus.FORBIDDEN);
+      }
+      throw new HttpException('Failed to fetch video live details', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

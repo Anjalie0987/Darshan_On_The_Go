@@ -87,6 +87,7 @@ export class AdminTemplesController {
         body.youtubeChannelId = verifiedData.channelId;
         body.youtubeChannelName = verifiedData.channelName;
         body.youtubeChannelHandle = verifiedData.channelHandle;
+        body.uploadsPlaylistId = verifiedData.uploadsPlaylistId || null;
         body.youtubeVerificationStatus = 'VERIFIED';
       }
       
@@ -115,6 +116,7 @@ export class AdminTemplesController {
         body.youtubeChannelId = verifiedData.channelId;
         body.youtubeChannelName = verifiedData.channelName;
         body.youtubeChannelHandle = verifiedData.channelHandle;
+        body.uploadsPlaylistId = verifiedData.uploadsPlaylistId || null;
         body.youtubeVerificationStatus = 'VERIFIED';
       }
       
